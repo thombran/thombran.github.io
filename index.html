@@ -71,7 +71,10 @@
       .then(() => {
         localStorage.removeItem('emailForSignIn');
       })
-      .catch(e => console.error("Sign-in error:", e));
+      .catch((e) => {
+        console.error("Sign-in error:", e);
+        alert("Error: ", e)
+      });
   }
 });
 

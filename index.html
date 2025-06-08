@@ -2,121 +2,153 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- <meta http-equiv="refresh" content="0; url=404.html"> -->
-  <title>Image Uploader</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Image Upload with Firebase</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f5f5f5; }
+    .box { background: white; padding: 2rem; border-radius: 10px; max-width: 500px; margin: auto; }
+    input[type="email"] { width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; }
+    button { padding: 0.5rem 1rem; margin-top: 0.5rem; }
+    .drop-area { border: 2px dashed #ccc; padding: 2rem; text-align: center; margin-top: 1rem; border-radius: 8px; }
+    .drop-area.highlight { background: #e0f7fa; border-color: #00bcd4; }
+    .preview img { max-width: 100%; margin-top: 1rem; }
+  </style>
 </head>
 <body>
-  <div class="upload-container">
-    <h1>Upload Your Image</h1>
+  <div class="box">
+    <h2>Sign-In with Email Link</h2>
+    <div id="auth-container">
+      <input type="email" id="email" placeholder="Enter your email" />
+      <button onclick="sendSignInLink()">Send Sign-In Link</button>
+    </div>
+    <p id="signed-in-status">Not signed in</p>
+    <button onclick="firebase.auth().signOut()">Sign Out</button>
+
     <div class="drop-area" id="drop-area">
       <p>Drag & drop an image here or click to select</p>
-      <input type="file" id="fileElem" accept="image/*" />
+      <input type="file" id="fileElem" accept="image/*" style="display:none"/>
     </div>
     <div class="preview" id="preview"></div>
   </div>
 
+  <!-- Firebase scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
   <script>
-    const dropArea = document.getElementById('drop-area');
-    const fileElem = document.getElementById('fileElem');
-    const preview = document.getElementById('preview');
+    // 🔐 Your Firebase config (API key is public-safe)
+    const firebaseConfig = {
+      apiKey: "AIzaSyB8X9Kf5no8uisdS4VkfaO44IyWbAnuo80",
+      authDomain: "high-extension-462219-i3.firebaseapp.com",
+      projectId: "high-extension-462219-i3",
+      storageBucket: "high-extension-462219-i3.firebasestorage.app",
+      messagingSenderId: "695072102293",
+      appId: "1:695072102293:web:9fa550e6c728ed11c3889c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const storage = firebase.storage();
 
-    dropArea.addEventListener('click', () => fileElem.click());
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-      dropArea.addEventListener(eventName, e => {
-        e.preventDefault();
-        dropArea.classList.add('highlight');
-      }, false);
+    window.addEventListener('load', async () => {
+      if (auth.isSignInWithEmailLink(window.location.href)) {
+        let email = localStorage.getItem('emailForSignIn') || window.prompt("Enter your email:");
+        try {
+          await auth.signInWithEmailLink(email, window.location.href);
+          localStorage.removeItem('emailForSignIn');
+        } catch (e) {
+          console.error("Sign-in error:", e);
+        }
+      }
     });
 
-    ['dragleave', 'drop'].forEach(eventName => {
-      dropArea.addEventListener(eventName, e => {
+    auth.onAuthStateChanged(user => {
+      document.getElementById('signed-in-status').textContent = user
+        ? `Signed in as ${user.email || user.uid}`
+        : "Not signed in";
+    });
+
+    function sendSignInLink() {
+      const email = document.getElementById("email").value;
+      if (!email) return alert("Please enter an email!");
+
+      const settings = {
+        url: window.location.href,
+        handleCodeInApp: true
+      };
+
+      auth.sendSignInLinkToEmail(email, settings)
+        .then(() => {
+          alert("Check your inbox for a sign-in link!");
+          localStorage.setItem("emailForSignIn", email);
+        })
+        .catch(err => console.error("Send email link error:", err));
+    }
+
+    const dropArea = document.getElementById("drop-area");
+    const fileElem = document.getElementById("fileElem");
+    const preview = document.getElementById("preview");
+
+    dropArea.addEventListener("click", () => fileElem.click());
+
+    ['dragenter', 'dragover'].forEach(event => {
+      dropArea.addEventListener(event, e => {
+        e.preventDefault();
+        dropArea.classList.add('highlight');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(event => {
+      dropArea.addEventListener(event, e => {
         e.preventDefault();
         dropArea.classList.remove('highlight');
-      }, false);
+      });
     });
 
     dropArea.addEventListener('drop', e => {
       const files = e.dataTransfer.files;
-      handleFiles(files);
+      if (files.length > 0) handleFile(files[0]);
     });
 
     fileElem.addEventListener('change', () => {
-      handleFiles(fileElem.files);
+      if (fileElem.files.length > 0) handleFile(fileElem.files[0]);
     });
 
-    function handleFiles(files) {
-      if (!files.length) return;
-      const file = files[0];
-      if (!file.type.startsWith('image/')) {
-        alert("Please upload an image file.");
+    function handleFile(file) {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert("Sign in to upload.");
+        return;
+      }
+      
+      if (!file.type.startsWith("image/")) {
+        alert("Please upload an image.");
+        return;
+      }
+      
+      if (file.size > 100 * 1024 * 1024) {
+        alert("File must be under 100MB.");
         return;
       }
 
-  // Preview image
-  const img = document.createElement('img');
-  img.src = URL.createObjectURL(file);
-  img.onload = () => URL.revokeObjectURL(img.src);
-  preview.innerHTML = '';
-  preview.appendChild(img);
+      // Show preview
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.onload = () => URL.revokeObjectURL(img.src);
+      preview.innerHTML = '';
+      preview.appendChild(img);
 
-  uploadFile(file);
-}
-
-  </script>
-  
-  <!-- Firebase App (core) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-
-  <!-- Firebase Auth (optional, for anonymous sign-in) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-
-  <!-- Firebase Storage -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-
-  <script type="module">
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyB8X9Kf5no8uisdS4VkfaO44IyWbAnuo80",
-    authDomain: "high-extension-462219-i3.firebaseapp.com",
-    projectId: "high-extension-462219-i3",
-    storageBucket: "high-extension-462219-i3.firebasestorage.app",
-    messagingSenderId: "695072102293",
-    appId: "1:695072102293:web:9fa550e6c728ed11c3889c",
-    measurementId: "G-0VP60MY5KR"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-
-  const appCheck = firebase.appCheck();
-  appCheck.activate('6Lc4Q1krAAAAAPB5arZbTSk_YIiaueC9SOPNyi2N');
-
-  const storage = firebase.storage();
-</script>
-
-<script>
-  function uploadFile(file) {
-
-    if (file.size > 100 * 1024 * 1024) {
-      alert("Upload exceeds limit (100MB)");
-      return;
+      // Upload file
+      const fileRef = storage.ref(`uploads/${user.uid}/${file.name}`);
+      fileRef.put(file)
+        .then(url => {
+          alert("Image upload complete!");
+        })
+        .catch(err => {
+          console.error("Upload error:", err);
+          alert("Image upload failed");
+        });
     }
-
-    const storageRef = firebase.storage().ref();
-    const path = `uploads/${firebase.auth().currentUser.uid}/${file.name}`;
-    const fileRef = storageRef.child(path);
-    
-    fileRef.put(file).then(snapshot => {
-      alert("Upload successful!");
-    }).catch(err => {
-      console.error("Upload failed:", err);
-      alert("There was an error with uploading your images");
-    });
-  }
-</script>
-
+  </script>
 </body>
 </html>
-

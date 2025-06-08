@@ -108,7 +108,10 @@
           alert("Check your inbox for a sign-in link!");
           localStorage.setItem("emailForSignIn", email);
         })
-        .catch(err => console.error("Send email link error:", err));
+        .catch((err) => {
+          console.error("Send email link error:", err)
+          alert("Error": err)
+        });
     }
 
     dropArea.addEventListener("click", () => fileElem.click());

@@ -89,7 +89,9 @@
   };
 
   firebase.initializeApp(firebaseConfig);
-  firebase.auth().signInAnonymously().catch(console.error);
+
+  const appCheck = firebase.appCheck();
+  appCheck.activate('6Lc4Q1krAAAAAPB5arZbTSk_YIiaueC9SOPNyi2N');
 
   const storage = firebase.storage();
 </script>

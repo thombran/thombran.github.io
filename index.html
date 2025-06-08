@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Image Uploader</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
 </head>
 <body>
   <div class="upload-container">
     <h1>Upload Your Image</h1>
     <div class="drop-area" id="drop-area">
+      <div class="g-recaptcha" data-sitekey="6LdEulgrAAAAAGo-ri_4MAIqnqJ5taSKx4_N71m7" data-action="UPLOAD"></div>
       <p>Drag & drop an image here or click to select</p>
       <input type="file" id="fileElem" accept="image/*" />
     </div>
@@ -47,23 +49,34 @@
     });
 
     function handleFiles(files) {
-      if (!files.length) return;
-      const file = files[0];
-      if (!file.type.startsWith('image/')) {
-        alert("Please upload an image file.");
-        return;
-      }
+  if (!files.length) return;
+  const file = files[0];
+  if (!file.type.startsWith('image/')) {
+    alert("Please upload an image file.");
+    return;
+  }
 
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
-      img.onload = () => URL.revokeObjectURL(img.src);
-      preview.innerHTML = '';
-      preview.appendChild(img);
+  // Preview image
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(file);
+  img.onload = () => URL.revokeObjectURL(img.src);
+  preview.innerHTML = '';
+  preview.appendChild(img);
 
-      // TODO: Add upload logic here
-      // Example: uploadFile(file)
-    }
+  // 🔽 Upload image
+  uploadFile(file);
+}
+
   </script>
+  
+  <!-- Firebase App (core) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+  <!-- Firebase Auth (optional, for anonymous sign-in) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+  <!-- Firebase Storage -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
@@ -81,7 +94,26 @@
 
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
+
+  firebase.auth().signInAnonymously().catch(console.error);
+
+  const storage = firebase.storage();
 </script>
+
+<script>
+  function uploadFile(file) {
+    const storageRef = firebase.storage().ref();
+    const fileRef = storageRef.child('uploads/' + file.name);
+
+    fileRef.put(file).then(snapshot => {
+      snapshot.ref.getDownloadURL().then(url => {
+      });
+    }).catch(err => {
+      console.error("Upload failed:", err);
+    });
+  }
+</script>
+
 </body>
 </html>
 

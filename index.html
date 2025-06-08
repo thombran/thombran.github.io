@@ -20,7 +20,7 @@
     <div id="auth-container">
       <h2>Sign-In with Email Link</h2>
       <input type="email" id="email" placeholder="Enter your email" />
-      <button onclick="sendSignInLink()">Send Sign-In Link</button>
+      <button id="send-link-btn">Send Sign-In Link</button>
       <p id="signed-in-status">Not signed in</p>
     </div>
 
@@ -60,18 +60,21 @@
     const fileElem = document.getElementById("fileElem");
     const preview = document.getElementById("preview");
 
-    // Sign-in redirect
-    window.addEventListener('load', async () => {
-      if (auth.isSignInWithEmailLink(window.location.href)) {
-        let email = localStorage.getItem('emailForSignIn') || window.prompt("Enter your email:");
-        try {
-          await auth.signInWithEmailLink(email, window.location.href);
-          localStorage.removeItem('emailForSignIn');
-        } catch (e) {
-          console.error("Sign-in error:", e);
-        }
-      }
-    });
+    window.addEventListener("load", () => {
+  // Attach click handler explicitly to avoid scope issues
+  document.getElementById("send-link-btn").addEventListener("click", sendSignInLink);
+
+  // Check if it's a sign-in link
+  if (auth.isSignInWithEmailLink(window.location.href)) {
+    let email = localStorage.getItem('emailForSignIn') || window.prompt("Enter your email:");
+    auth.signInWithEmailLink(email, window.location.href)
+      .then(() => {
+        localStorage.removeItem('emailForSignIn');
+      })
+      .catch(e => console.error("Sign-in error:", e));
+  }
+});
+
 
     // Auth state change
     auth.onAuthStateChanged(user => {

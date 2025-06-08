@@ -60,22 +60,21 @@
     const fileElem = document.getElementById("fileElem");
     const preview = document.getElementById("preview");
 
-    window.addEventListener("load", () => {
-  // Attach click handler explicitly to avoid scope issues
-  document.getElementById("send-link-btn").addEventListener("click", sendSignInLink);
+    document.getElementById("send-link-btn").addEventListener("click", sendSignInLink);
 
-  // Check if it's a sign-in link
-  if (auth.isSignInWithEmailLink(window.location.href)) {
-    let email = localStorage.getItem('emailForSignIn') || window.prompt("Enter your email:");
-    auth.signInWithEmailLink(email, window.location.href)
-      .then(() => {
-        localStorage.removeItem('emailForSignIn');
-      })
-      .catch((e) => {
-        console.error("Sign-in error:", e);
-        alert("Error: ", e)
-      });
-  }
+// Handle sign-in if user clicked link
+if (auth.isSignInWithEmailLink(window.location.href)) {
+  let email = localStorage.getItem('emailForSignIn') || window.prompt("Enter your email:");
+  auth.signInWithEmailLink(email, window.location.href)
+    .then(() => {
+      localStorage.removeItem('emailForSignIn');
+    })
+    .catch((e) => {
+      console.error("Sign-in error:", e);
+      alert("Error: " + e.message);
+    });
+}
+
 });
 
 

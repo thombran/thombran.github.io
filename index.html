@@ -47,12 +47,12 @@
     });
 
     function handleFiles(files) {
-  if (!files.length) return;
-  const file = files[0];
-  if (!file.type.startsWith('image/')) {
-    alert("Please upload an image file.");
-    return;
-  }
+      if (!files.length) return;
+      const file = files[0];
+      if (!file.type.startsWith('image/')) {
+        alert("Please upload an image file.");
+        return;
+      }
 
   // Preview image
   const img = document.createElement('img');
@@ -77,8 +77,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-analytics.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB8X9Kf5no8uisdS4VkfaO44IyWbAnuo80",
@@ -90,9 +88,7 @@
     measurementId: "G-0VP60MY5KR"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-
+  firebase.initializeApp(firebaseConfig);
   firebase.auth().signInAnonymously().catch(console.error);
 
   const storage = firebase.storage();

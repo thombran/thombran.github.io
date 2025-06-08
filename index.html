@@ -64,6 +64,24 @@
       // Example: uploadFile(file)
     }
   </script>
+
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB8X9Kf5no8uisdS4VkfaO44IyWbAnuo80",
+    authDomain: "high-extension-462219-i3.firebaseapp.com",
+    projectId: "high-extension-462219-i3",
+    storageBucket: "high-extension-462219-i3.firebasestorage.app",
+    messagingSenderId: "695072102293",
+    appId: "1:695072102293:web:9fa550e6c728ed11c3889c",
+    measurementId: "G-0VP60MY5KR"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 </body>
 </html>
 

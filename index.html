@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="refresh" content="0; url=404.html">
+  <!-- <meta http-equiv="refresh" content="0; url=404.html"> -->
   <title>Image Uploader</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -62,7 +62,6 @@
   preview.innerHTML = '';
   preview.appendChild(img);
 
-  // 🔽 Upload image
   uploadFile(file);
 }
 
@@ -97,14 +96,21 @@
 
 <script>
   function uploadFile(file) {
-    const storageRef = firebase.storage().ref();
-    const fileRef = storageRef.child('uploads/' + file.name);
 
+    if (file.size > 100 * 1024 * 1024) {
+      alert("Upload exceeds limit (100MB)");
+      return;
+    }
+
+    const storageRef = firebase.storage().ref();
+    const path = `uploads/${firebase.auth().currentUser.uid}/${file.name}`;
+    const fileRef = storageRef.child(path);
+    
     fileRef.put(file).then(snapshot => {
-      snapshot.ref.getDownloadURL().then(url => {
-      });
+      alert("Upload successful!");
     }).catch(err => {
       console.error("Upload failed:", err);
+      alert("There was an error with uploading your images");
     });
   }
 </script>

@@ -29,7 +29,7 @@
       gap: 1rem;
     }
 
-    input[type="tel"] {
+    input[type="email"] {
       padding: 0.75rem;
       font-size: 1rem;
       border-radius: 6px;
@@ -58,7 +58,7 @@
     <!-- Sign-in UI -->
     <div id="auth-container" class="centered-box">
       <h2 style="text-align: center;">Sign In to Upload Photos</h2>
-      <input type="tel" id="phoneNumber" placeholder="Enter your phone number" />
+      <input type="email" id="email" placeholder="Enter your email" />
       <button id="send-link-btn">Send Sign-In Link</button>
       <p id="signed-in-status" style="text-align: center;">Not signed in</p>
     </div>
@@ -103,11 +103,11 @@
     document.getElementById("send-link-btn").addEventListener("click", sendSignInLink);
 
     // Handle sign-in if user clicked link
-    if (auth.isSignInWithPhoneNumber(window.location.href)) {
-      let phoneNumber = localStorage.getItem('phoneNumberForSignIn') || window.prompt("Enter your phone number:");
-      auth.signInWithPhoneNumber(phoneNumber, window.location.href)
+    if (auth.isSignInWithEmailLink(window.location.href)) {
+      let email = localStorage.getItem('emailForSignIn') || window.prompt("Enter your email:");
+      auth.signInWithEmailLink(email, window.location.href)
         .then(() => {
-          localStorage.removeItem('phoneNumberForSignIn');
+          localStorage.removeItem('emailForSignIn');
         })
         .catch((e) => {
           console.error("Sign-in error:", e);
@@ -122,7 +122,7 @@
       const status = document.getElementById('signed-in-status');
 
       if (user) {
-        status.textContent = `Signed in as ${user.phone || user.uid}`;
+        status.textContent = `Signed in as ${user.email || user.uid}`;
         authContainer.style.display = 'none';
         uploadContainer.style.display = 'block';
       } else {
@@ -134,21 +134,21 @@
 
     // Email link sign-in
     function sendSignInLink() {
-      const phoneNumber = document.getElementById("phoneNumber").value;
-      if (!phoneNumber) return alert("Please enter an phone number!");
+      const email = document.getElementById("email").value;
+      if (!email) return alert("Please enter an email!");
 
       const settings = {
         url: window.location.href,
         handleCodeInApp: true
       };
 
-      auth.sendSignInLinkToPhone(phoneNumber, settings)
+      auth.sendSignInLinkToEmail(email, settings)
         .then(() => {
-          alert("Check your phone for a sign-in link!");
-          localStorage.setItem("phoneNumberForSignIn", email);
+          alert("Check your inbox for a sign-in link!");
+          localStorage.setItem("emailForSignIn", email);
         })
         .catch((err) => {
-          console.error("Send link error:", err);
+          console.error("Send email link error:", err);
           alert("Error: ", err);
         });
     }
